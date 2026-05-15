@@ -1,8 +1,10 @@
-import type { SourceTable, TableField } from '../shared/types';
+import type { SourceTable, TableField, PlaceholderLayer } from '../shared/types';
 import { SUPPORTED_FILE_EXTENSIONS } from '../shared/constants';
-import { messageHandler, setGenerateEnabledCallback } from './message-handler';
+import { messageHandler, setGenerateEnabledCallback, setTemplateLayersCallback } from './message-handler';
 import { parseFile } from './parsers/FileParser';
 import { renderFieldList } from './field-list';
+import { createMappingPanel } from './mapping-view';
+import type { MappingEntry, MappingPanelCallbacks } from './mapping-view';
 
 interface AppState {
   sourceTable: SourceTable | null;
@@ -15,6 +17,13 @@ const appState: AppState = {
   sourceReady: false,
   templateReady: false,
 };
+
+let mappingEntries: MappingEntry[] = [];
+let mappingPanel: ReturnType<typeof createMappingPanel> | null = null;
+let currentFields: TableField[] = [];
+let currentTextLayers: PlaceholderLayer[] = [];
+let currentImageLayers: PlaceholderLayer[] = [];
+let currentTemplateId: string | null = null;
 
 function initialize(): void {
   if (document.readyState === 'loading') {
@@ -128,6 +137,14 @@ async function handleFile(file: File): Promise<void> {
     appState.sourceReady = true;
 
     displayFieldList(sourceTable.fields, sourceTable.totalRows);
+
+    if (fieldsChanged(sourceTable.fields)) {
+      mappingEntries = [];
+      if (mappingPanel) mappingPanel.clearAll();
+    }
+    currentFields = sourceTable.fields;
+    setupMappingPanel();
+
     updatePreviewInfo(sourceTable);
     updateGenerateButton();
 
@@ -189,6 +206,63 @@ function showError(message: string): void {
   }
 }
 
+function setupMappingPanel(): void {
+  const container = document.getElementById('mapping-container');
+  if (!container) return;
+
+  if (mappingPanel) {
+    mappingPanel.setEntries(mappingEntries);
+    return;
+  }
+
+  const callbacks: MappingPanelCallbacks = {
+    onMappingsChanged: (entries: MappingEntry[]) => {
+      mappingEntries = entries;
+    },
+    getSourceFields: () => currentFields,
+    getTextLayers: () => currentTextLayers,
+    getImageLayers: () => currentImageLayers,
+  };
+
+  mappingPanel = createMappingPanel(container, callbacks);
+}
+
+function fieldsChanged(newFields: TableField[]): boolean {
+  if (currentFields.length !== newFields.length) return true;
+  for (let i = 0; i < newFields.length; i++) {
+    if (currentFields[i].index !== newFields[i].index ||
+        currentFields[i].name !== newFields[i].name ||
+        currentFields[i].type !== newFields[i].type) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function showMappingWarning(message: string): void {
+  const container = document.getElementById('mapping-container');
+  if (!container) return;
+
+  let banner = container.querySelector('.mapping-warning') as HTMLElement | null;
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.className = 'mapping-warning';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'mapping-warning-close';
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', () => {
+      if (banner) banner.style.display = 'none';
+    });
+    banner.appendChild(closeBtn);
+    const text = document.createElement('span');
+    banner.appendChild(text);
+    container.insertBefore(banner, container.firstChild);
+  }
+  const text = banner.querySelector('span');
+  if (text) text.textContent = message;
+  banner.style.display = 'flex';
+}
+
 function clearError(): void {
   const dataSection = document.getElementById('data-section');
   if (!dataSection) return;
@@ -202,6 +276,22 @@ function clearError(): void {
 
 setGenerateEnabledCallback((enabled: boolean) => {
   appState.templateReady = enabled;
+  updateGenerateButton();
+});
+
+setTemplateLayersCallback((payload) => {
+  const templateChanged = currentTemplateId !== null && currentTemplateId !== payload.nodeId;
+  currentTemplateId = payload.nodeId;
+  currentTextLayers = payload.textLayers;
+  currentImageLayers = payload.imageLayers;
+
+  if (templateChanged) {
+    mappingEntries = [];
+    if (mappingPanel) mappingPanel.clearAll();
+    showMappingWarning('模板已变更，所有映射已清除');
+  }
+
+  setupMappingPanel();
   updateGenerateButton();
 });
 

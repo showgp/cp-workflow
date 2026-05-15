@@ -1,28 +1,21 @@
-import type { TableField } from '../shared/types';
-import type { PlaceholderLayer } from '../shared/types';
-import type { MappingEntry } from '../shared/types';
+export { createMappingPanel } from './mapping/MappingPanel';
+export { createMappingEntry } from './mapping/MappingRow';
+export type { MappingEntry } from './mapping/MappingRow';
+export type { MappingPanelCallbacks } from './mapping/MappingPanel';
 
-export function renderMappingView(
-  _fields: TableField[],
-  _textLayers: PlaceholderLayer[],
-  _imageLayers: PlaceholderLayer[],
-  _container: HTMLElement
-): void {
-  throw new Error('Not implemented');
-}
-
-export function getCurrentMappings(): MappingEntry[] {
-  throw new Error('Not implemented');
+// Stub functions for backward compatibility
+export function getCurrentMappings(): unknown[] {
+  throw new Error('Use MappingPanel.getEntries() instead');
 }
 
 export function clearAllMappings(): void {
-  throw new Error('Not implemented');
+  throw new Error('Use MappingPanel.clearAll() instead');
 }
 
 export function hasAnyMapping(): boolean {
-  throw new Error('Not implemented');
+  throw new Error('Use MappingPanel.hasAnyMapping() instead');
 }
 
-export function setMappingChangeCallback(_callback: (mappings: MappingEntry[]) => void): void {
-  throw new Error('Not implemented');
+export function setMappingChangeCallback(_callback: (mappings: unknown[]) => void): void {
+  throw new Error('Use MappingPanelCallbacks.onMappingsChanged instead');
 }

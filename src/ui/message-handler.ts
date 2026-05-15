@@ -4,8 +4,20 @@ import { renderLayerList, updateTemplateStatus, clearLayerList } from './layer-l
 
 let onGenerateEnabledChange: ((enabled: boolean) => void) | null = null;
 
+let onTemplateLayersReceived: ((payload: {
+  nodeId: string;
+  frameName: string;
+  textLayers: PlaceholderLayer[];
+  imageLayers: PlaceholderLayer[];
+  totalLayers: number;
+}) => void) | null = null;
+
 export function setGenerateEnabledCallback(cb: (enabled: boolean) => void): void {
   onGenerateEnabledChange = cb;
+}
+
+export function setTemplateLayersCallback(cb: typeof onTemplateLayersReceived): void {
+  onTemplateLayersReceived = cb;
 }
 
 function notifyTemplateReady(ready: boolean): void {
@@ -65,6 +77,10 @@ function handleTemplateLayers(payload: {
   totalLayers: number;
 }): void {
   updateTemplateStatus('valid', payload.frameName);
+
+  if (onTemplateLayersReceived) {
+    onTemplateLayersReceived(payload);
+  }
 
   const container = document.getElementById('layer-list-container');
   if (!container) return;
