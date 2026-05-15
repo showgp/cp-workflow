@@ -1,57 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>批量填充模板生成器</title>
-</head>
-<body>
-  <div id="app">
-    <div id="template-section" class="section">
-      <h3>模板选择</h3>
-      <div id="template-status">请先在画布中选择一个模板 Frame</div>
-      <div id="layer-list-container"></div>
-    </div>
-    <div id="data-section" class="section">
-      <h3>数据源</h3>
-      <div id="file-upload-container">
-        <label id="upload-btn" class="upload-label">上传 Excel / CSV 文件
-          <input type="file" id="file-input" accept=".xlsx,.csv" style="position:absolute;opacity:0;width:0;height:0;overflow:hidden">
-        </label>
-        <div id="file-info" class="file-info"></div>
-      </div>
-      <div id="field-list-container"></div>
-    </div>
-    <div id="mapping-section" class="section">
-      <h3>字段映射</h3>
-      <div id="mapping-container"></div>
-    </div>
-    <div id="layout-section" class="section">
-      <h3>排列方向</h3>
-      <div class="layout-options">
-        <label class="layout-option">
-          <input type="radio" name="layout-direction" value="grid" checked>
-          <span>宫格排列</span>
-        </label>
-        <label class="layout-option">
-          <input type="radio" name="layout-direction" value="horizontal">
-          <span>横向排列</span>
-        </label>
-        <label class="layout-option">
-          <input type="radio" name="layout-direction" value="vertical">
-          <span>纵向排列</span>
-        </label>
-      </div>
-    </div>
-    <div id="generation-section" class="section">
-      <div id="preview-info"></div>
-      <div id="progress-container"></div>
-      <div id="result-container"></div>
-      <button id="generate-btn" disabled>生成</button>
-    </div>
-  </div>
-  <div class="resize-handle" id="resize-handle"></div>
-  <script src="app.ts"></script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="styles.css" />
+        <title>批量填充模板生成器</title>
+    </head>
+    <body>
+        <div id="app">
+            <div id="template-section" class="section">
+                <h3>模板选择</h3>
+                <div id="template-status">请先在画布中选择一个模板 Frame</div>
+                <div id="layer-list-container"></div>
+            </div>
+            <div id="data-section" class="section">
+                <h3>数据源</h3>
+                <div id="file-upload-container">
+                    <label id="upload-btn" class="upload-label"
+                        >打开 Excel / CSV 文件
+                        <input
+                            type="file"
+                            id="file-input"
+                            accept=".xlsx,.csv"
+                            style="position: absolute; opacity: 0; width: 0; height: 0; overflow: hidden"
+                        />
+                    </label>
+                    <div id="file-info" class="file-info"></div>
+                </div>
+                <div id="field-list-container"></div>
+            </div>
+            <div id="mapping-section" class="section">
+                <h3>字段映射</h3>
+                <div id="mapping-container"></div>
+            </div>
+            <div id="layout-section" class="section">
+                <h3>排列方向</h3>
+                <div class="layout-options">
+                    <label class="layout-option">
+                        <input type="radio" name="layout-direction" value="grid" checked />
+                        <span>宫格排列</span>
+                    </label>
+                    <label class="layout-option">
+                        <input type="radio" name="layout-direction" value="horizontal" />
+                        <span>横向排列</span>
+                    </label>
+                    <label class="layout-option">
+                        <input type="radio" name="layout-direction" value="vertical" />
+                        <span>纵向排列</span>
+                    </label>
+                </div>
+            </div>
+            <div id="generation-section" class="section">
+                <div id="preview-info"></div>
+                <div id="progress-container"></div>
+                <div id="result-container"></div>
+                <button id="generate-btn" disabled>生成</button>
+            </div>
+        </div>
+        <div class="resize-handle" id="resize-handle"></div>
+        <script src="app.ts"></script>
+    </body>
 </html>
