@@ -47,12 +47,12 @@ function processBuildResult(result) {
   jsContent = jsContent.replace(/\$/g, '$$$$');
 
   htmlContent = htmlContent.replace(
-    /<link rel="stylesheet" href="[^"]*">/,
+    /<link[^>]*rel="stylesheet"[^>]*>/,
     `<style>${cssContent}</style>`
   );
 
   htmlContent = htmlContent.replace(
-    /<script src="[^"]*"><\/script>/,
+    /<script\b[^>]*src="[^"]*"[^>]*>[\s\S]*?<\/script>/,
     `<script>${jsContent}</script>`
   );
 
