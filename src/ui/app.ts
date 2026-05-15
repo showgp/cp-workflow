@@ -172,6 +172,7 @@ async function handleFile(file: File): Promise<void> {
       if (mappingPanel) mappingPanel.clearAll();
     }
     currentFields = sourceTable.fields;
+    populateNamingSelector(sourceTable.fields);
     setupMappingPanel();
 
     updatePreviewInfo(sourceTable);
@@ -232,6 +233,18 @@ function showDataError(message: string): void {
   const fieldContainer = document.getElementById('field-list-container');
   if (fieldContainer) {
     fieldContainer.innerHTML = '';
+  }
+}
+
+function populateNamingSelector(fields: TableField[]): void {
+  const select = document.getElementById('naming-select') as HTMLSelectElement;
+  if (!select) return;
+  while (select.options.length > 1) select.remove(1);
+  for (const field of fields) {
+    const opt = document.createElement('option');
+    opt.value = field.name;
+    opt.textContent = field.name;
+    select.appendChild(opt);
   }
 }
 
@@ -405,6 +418,9 @@ setTemplateLayersCallback((payload) => {
       direction: direction,
     };
 
+    const namingSelect = document.getElementById('naming-select') as HTMLSelectElement;
+    const nameColumn = namingSelect?.value || null;
+
     const config: GenerationConfig = {
       mapping: {
         entries: mappingEntries.map(e => ({
@@ -423,6 +439,7 @@ setTemplateLayersCallback((payload) => {
       sourceTable: appState.sourceTable,
       templatePreviewDataUrl: null,
       layout,
+      nameColumn,
     };
 
     sendMessage({

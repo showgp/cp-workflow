@@ -88,6 +88,7 @@ export interface GenerationConfig {
   sourceTable: SourceTable;
   templatePreviewDataUrl: string | null;
   layout: LayoutSettings;
+  nameColumn: string | null;
 }
 
 // Generation status

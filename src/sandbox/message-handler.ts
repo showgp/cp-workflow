@@ -232,6 +232,13 @@ async function handleStartGeneration(config: GenerationConfig): Promise<void> {
         allWarnings.push(...warnings);
       }
 
+      if (config.nameColumn) {
+        const cellValue = rows[i].cells[config.nameColumn];
+        if (cellValue != null && String(cellValue).trim() !== '') {
+          clone.name = String(cellValue).trim();
+        }
+      }
+
       sendToUi({
         type: 'generation-progress',
         payload: {

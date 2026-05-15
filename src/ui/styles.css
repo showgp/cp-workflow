@@ -722,3 +722,27 @@ input[type="file"] {
     linear-gradient(135deg, transparent 50%, #999 50%),
     linear-gradient(135deg, transparent 50%, #999 50%);
 }
+
+.naming-container {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.naming-label {
+  font-size: 11px;
+  color: var(--figma-color-text-secondary);
+  white-space: nowrap;
+}
+
+.naming-select {
+  flex: 1;
+  font-size: 11px;
+  padding: 3px 6px;
+  border: 1px solid var(--figma-color-border);
+  border-radius: 4px;
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+}
