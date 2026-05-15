@@ -46,13 +46,14 @@ function processBuildResult(result) {
   // Escape $ in JS to prevent String.replace interpreting $&, $', etc. as backreferences
   jsContent = jsContent.replace(/\$/g, '$$$$');
 
+  // Replace by filename — robust against any HTML formatting
   htmlContent = htmlContent.replace(
-    /<link[^>]*rel="stylesheet"[^>]*>/,
+    /<link\b[^>]*href="styles\.css"[^>]*\/?>/,
     `<style>${cssContent}</style>`
   );
 
   htmlContent = htmlContent.replace(
-    /<script\b[^>]*src="[^"]*"[^>]*>[\s\S]*?<\/script>/,
+    /<script\b[^>]*src="app\.ts"[^>]*>\s*<\/script>/,
     `<script>${jsContent}</script>`
   );
 
