@@ -2,7 +2,7 @@ import type { UiToSandboxMessage, SandboxToUiMessage } from '../shared/messages'
 import type { SelectionInfo, SelectedNodeSummary, PlaceholderLayer, GenerationConfig, Issue, Warning } from '../shared/types';
 import { scanLayers } from './layer-scanner';
 import { cloneFrame } from './frame-cloner';
-import { fillContent } from './content-filler';
+import { fillContent, loadFonts } from './content-filler';
 import { layoutFrames } from './layout-engine';
 import { DEFAULT_LAYOUT } from '../shared/constants';
 
@@ -201,6 +201,8 @@ async function handleStartGeneration(config: GenerationConfig): Promise<void> {
     });
     return;
   }
+
+  await loadFonts(templateFrame);
 
   const allIssues: Issue[] = [];
   const allWarnings: Warning[] = [];

@@ -1,6 +1,42 @@
 import type { MappingEntry, TableRow, ImageData, Issue, Warning } from '../shared/types';
 import { base64ToUint8Array } from './base64';
 
+interface FontKey {
+  family: string;
+  style: string;
+}
+
+export async function loadFonts(frame: FrameNode): Promise<void> {
+  const fonts = new Map<string, FontKey>();
+
+  function collect(node: SceneNode): void {
+    if (node.type === 'TEXT') {
+      const textNode = node as TextNode;
+      const family = textNode.fontName === figma.mixed
+        ? (textNode.getRangeFontName(0, 1) as FontName).family
+        : (textNode.fontName as FontName).family;
+      const style = textNode.fontName === figma.mixed
+        ? (textNode.getRangeFontName(0, 1) as FontName).style
+        : (textNode.fontName as FontName).style;
+      const key = `${family}|${style}`;
+      if (!fonts.has(key)) {
+        fonts.set(key, { family, style });
+      }
+    }
+    if ('children' in node) {
+      for (const child of (node as FrameNode).children) {
+        collect(child);
+      }
+    }
+  }
+
+  collect(frame);
+
+  await Promise.all(
+    Array.from(fonts.values()).map(f => figma.loadFontAsync({ family: f.family, style: f.style }))
+  );
+}
+
 export function fillContent(
   clonedFrame: FrameNode,
   mappings: MappingEntry[],
