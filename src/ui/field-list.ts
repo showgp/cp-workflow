@@ -60,22 +60,3 @@ export function renderFieldList(fields: TableField[], container: HTMLElement): v
   container.appendChild(table);
 }
 
-export function clearFieldList(): void {
-  const container = document.getElementById('field-list-container');
-  if (container) {
-    container.innerHTML = '';
-  }
-}
-
-export function updateFieldListState(
-  totalRows: number,
-  fields: TableField[],
-  container: HTMLElement,
-): void {
-  renderFieldList(fields, container);
-
-  const previewInfo = document.getElementById('preview-info');
-  if (previewInfo) {
-    previewInfo.textContent = `Total rows: ${totalRows}, Total columns: ${fields.length}`;
-  }
-}

@@ -39,7 +39,7 @@ export interface SourceTable {
 export type LayerType = 'text' | 'image' | 'other';
 
 // Layer info from template scanning
-export interface LayerInfo {
+interface LayerInfo {
   id: string;
   name: string;
   nodeType: string;
