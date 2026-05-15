@@ -2,9 +2,10 @@
   "compilerOptions": {
     "target": "es2017",
     "lib": ["es2017"],
-    "module": "amd",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "strict": true,
-    "outFile": "./code.js",
+    "noEmit": true,
     "rootDir": "./src",
     "typeRoots": [
       "./node_modules/@figma"

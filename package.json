@@ -4,10 +4,10 @@
   "description": "Your Figma Plugin",
   "main": "code.js",
   "scripts": {
-    "build:sandbox": "tsc -p tsconfig.sandbox.json",
+    "build:sandbox": "node scripts/build-sandbox.mjs",
     "build:ui": "node scripts/build-ui.mjs",
     "build": "npm run build:sandbox && npm run build:ui",
-    "watch:sandbox": "tsc -p tsconfig.sandbox.json --watch",
+    "watch:sandbox": "node scripts/build-sandbox.mjs --watch",
     "watch:ui": "node scripts/build-ui.mjs --watch",
     "dev": "npm run build && concurrently \"npm:watch:sandbox\" \"npm:watch:ui\"",
     "lint": "eslint .",
