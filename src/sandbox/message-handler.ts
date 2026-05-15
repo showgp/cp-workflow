@@ -1,10 +1,16 @@
 import type { UiToSandboxMessage, SandboxToUiMessage } from '../shared/messages';
-import type { SelectionInfo, SelectedNodeSummary, PlaceholderLayer } from '../shared/types';
+import type { SelectionInfo, SelectedNodeSummary, PlaceholderLayer, GenerationConfig, Issue, Warning } from '../shared/types';
 import { scanLayers } from './layer-scanner';
+import { cloneFrame } from './frame-cloner';
+import { fillContent } from './content-filler';
+import { layoutFrames } from './layout-engine';
+import { DEFAULT_LAYOUT } from '../shared/constants';
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let currentTemplateId: string | null = null;
 let cachedLayers: { textLayers: PlaceholderLayer[]; imageLayers: PlaceholderLayer[] } | null = null;
+let cancelRequested = false;
+let generatedFrames: FrameNode[] = [];
 
 function sendToUi(message: SandboxToUiMessage): void {
   figma.ui.postMessage(message);
@@ -164,6 +170,112 @@ async function handleRequestTemplateLayers(nodeId: string): Promise<void> {
   }
 }
 
+async function handleStartGeneration(config: GenerationConfig): Promise<void> {
+  cancelRequested = false;
+  generatedFrames = [];
+
+  const mappings = config.mapping.entries;
+  const rows = config.sourceTable.rows;
+  const layout = config.layout || DEFAULT_LAYOUT;
+
+  let templateFrame: FrameNode | null = null;
+  const selection = figma.currentPage.selection;
+  if (selection.length === 1 && selection[0].type === 'FRAME') {
+    templateFrame = selection[0] as FrameNode;
+  } else {
+    const node = await figma.getNodeByIdAsync(config.mapping.templateNodeId);
+    if (node && node.type === 'FRAME') {
+      templateFrame = node as FrameNode;
+    }
+  }
+
+  if (!templateFrame) {
+    sendToUi({
+      type: 'generation-error',
+      payload: {
+        message: '模板 Frame 未找到',
+        phase: 'cloning',
+        rowIndex: -1,
+        detail: 'Template frame not found',
+      },
+    });
+    return;
+  }
+
+  const allIssues: Issue[] = [];
+  const allWarnings: Warning[] = [];
+  const startTime = Date.now();
+
+  for (let i = 0; i < rows.length; i++) {
+    if (cancelRequested) {
+      const resultPayload = {
+        successCount: generatedFrames.length,
+        processedRows: i,
+        totalRows: rows.length,
+      };
+      sendToUi({
+        type: 'generation-cancelled',
+        payload: resultPayload,
+      });
+      return;
+    }
+
+    try {
+      const clone = cloneFrame(templateFrame);
+      generatedFrames.push(clone);
+
+      if (mappings.length > 0) {
+        const { issues, warnings } = fillContent(clone, mappings, rows[i]);
+        allIssues.push(...issues);
+        allWarnings.push(...warnings);
+      }
+
+      sendToUi({
+        type: 'generation-progress',
+        payload: {
+          current: i + 1,
+          total: rows.length,
+          status: 'running',
+          currentRowIndex: i,
+        },
+      });
+    } catch (err) {
+      sendToUi({
+        type: 'generation-error',
+        payload: {
+          message: err instanceof Error ? err.message : '生成失败',
+          phase: 'filling',
+          rowIndex: i,
+          detail: String(err),
+        },
+      });
+      return;
+    }
+  }
+
+  layoutFrames(generatedFrames, layout);
+
+  const endTime = Date.now();
+  const result = {
+    successCount: generatedFrames.length,
+    issueCount: allIssues.length,
+    totalRows: rows.length,
+    issues: allIssues,
+    warnings: allWarnings,
+    startTime,
+    endTime,
+  };
+
+  sendToUi({
+    type: 'generation-complete',
+    payload: result,
+  });
+}
+
+function handleCancelGeneration(): void {
+  cancelRequested = true;
+}
+
 export function messageHandler(msg: unknown): void {
   const message = msg as UiToSandboxMessage | { type: 'selectionchange' };
 
@@ -178,8 +290,10 @@ export function messageHandler(msg: unknown): void {
       handleRequestTemplateLayers(message.payload.nodeId);
       break;
     case 'start-generation':
+      handleStartGeneration(message.payload);
       break;
     case 'cancel-generation':
+      handleCancelGeneration();
       break;
     case 'selectionchange':
       handleSelectionChange();

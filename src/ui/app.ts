@@ -5,6 +5,10 @@ import { parseFile } from './parsers/FileParser';
 import { renderFieldList } from './field-list';
 import { createMappingPanel } from './mapping-view';
 import type { MappingEntry, MappingPanelCallbacks } from './mapping-view';
+import { showProgress, setProgressCancelCallback } from './progress-bar';
+import { hideResult } from './result-view';
+import type { GenerationConfig, LayoutSettings } from '../shared/types';
+import { DEFAULT_LAYOUT } from '../shared/constants';
 
 interface AppState {
   sourceTable: SourceTable | null;
@@ -38,9 +42,10 @@ function onReady(): void {
 
   setupUploadButton();
   setupDropZone();
-  setupFileInput();
+    setupFileInput();
+    setupGenerateButton();
 
-  sendMessage({ type: 'request-selection-info', payload: {} });
+    sendMessage({ type: 'request-selection-info', payload: {} });
 }
 
 function sendMessage(msg: { type: string; payload: unknown }): void {
@@ -120,7 +125,7 @@ async function handleFile(file: File): Promise<void> {
   const isCsv = fileName.endsWith('.' + SUPPORTED_FILE_EXTENSIONS.CSV);
 
   if (!isXlsx && !isCsv) {
-    showError('不支持的文件格式，请上传 .xlsx 或 .csv 文件');
+    showDataError('不支持的文件格式，请上传 .xlsx 或 .csv 文件');
     return;
   }
 
@@ -155,7 +160,7 @@ async function handleFile(file: File): Promise<void> {
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : '文件解析失败';
     appState.sourceReady = false;
-    showError(errorMsg);
+      showDataError(errorMsg);
 
     if (fileInfoEl) {
       fileInfoEl.textContent = '';
@@ -187,7 +192,7 @@ function updateGenerateButton(): void {
   }
 }
 
-function showError(message: string): void {
+function showDataError(message: string): void {
   const dataSection = document.getElementById('data-section');
   if (!dataSection) return;
 
@@ -295,11 +300,106 @@ setTemplateLayersCallback((payload) => {
   updateGenerateButton();
 });
 
-window.addEventListener('message', (event) => {
-  const msg = event.data.pluginMessage;
-  if (msg) {
-    messageHandler(msg);
-  }
-});
+  window.addEventListener('message', (event) => {
+    const msg = event.data.pluginMessage;
+    if (msg) {
+      messageHandler(msg);
+    }
+  });
 
-initialize();
+  function setupGenerateButton(): void {
+    const genBtn = document.getElementById('generate-btn') as HTMLButtonElement;
+    if (!genBtn) return;
+
+    genBtn.addEventListener('click', () => {
+      handleGenerateClick();
+    });
+
+    setProgressCancelCallback(() => {
+      sendMessage({ type: 'cancel-generation', payload: {} });
+    });
+  }
+
+  function handleGenerateClick(): void {
+    if (!appState.sourceTable) return;
+
+    if (mappingEntries.length === 0) {
+      showZeroMappingDialog();
+      return;
+    }
+
+    startGeneration();
+  }
+
+  function showZeroMappingDialog(): void {
+    const totalRows = appState.sourceTable?.totalRows || 0;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'dialog-overlay';
+    overlay.innerHTML = `
+      <div class="dialog-box">
+        <div class="dialog-title">未建立任何映射</div>
+        <div class="dialog-body">
+          将生成模板副本但不替换任何内容。是否继续？<br>
+          将生成 <strong>${totalRows}</strong> 页。
+        </div>
+        <div class="dialog-actions">
+          <button class="dialog-btn dialog-btn-ghost" id="dialog-cancel">取消</button>
+          <button class="dialog-btn dialog-btn-primary" id="dialog-confirm">继续生成</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#dialog-cancel')?.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+    });
+
+    overlay.querySelector('#dialog-confirm')?.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+      startGeneration();
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        // Don't close on overlay click — user must choose
+      }
+    });
+  }
+
+  function startGeneration(): void {
+    if (!appState.sourceTable || !currentTemplateId) return;
+
+    hideResult();
+    showProgress();
+
+    const layout: LayoutSettings = DEFAULT_LAYOUT;
+
+    const config: GenerationConfig = {
+      mapping: {
+        entries: mappingEntries.map(e => ({
+          id: e.id,
+          sourceField: e.columnName,
+          sourceFieldType: e.columnType,
+          targetLayerId: e.targetLayerId,
+          targetLayerName: e.targetLayerPath || e.targetLayerName,
+          targetLayerType: e.columnType,
+        })),
+        templateNodeId: currentTemplateId,
+        templateName: '',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      },
+      sourceTable: appState.sourceTable,
+      templatePreviewDataUrl: null,
+      layout,
+    };
+
+    sendMessage({
+      type: 'start-generation',
+      payload: config,
+    });
+  }
+
+  initialize();

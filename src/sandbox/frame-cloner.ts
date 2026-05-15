@@ -1,3 +1,5 @@
-export function cloneFrame(_templateNodeId: string): FrameNode {
-  throw new Error('Not implemented');
+export function cloneFrame(templateFrame: FrameNode): FrameNode {
+  const clone = templateFrame.clone();
+  figma.currentPage.appendChild(clone);
+  return clone;
 }

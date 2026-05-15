@@ -1,6 +1,8 @@
 import type { SandboxToUiMessage } from '../shared/messages';
-import type { SelectionInfo, PlaceholderLayer } from '../shared/types';
+import type { SelectionInfo, PlaceholderLayer, GenerationProgress, GenerationResult } from '../shared/types';
 import { renderLayerList, updateTemplateStatus, clearLayerList } from './layer-list';
+import { updateProgress } from './progress-bar';
+import { showResult, showCancelledResult, showError } from './result-view';
 
 let onGenerateEnabledChange: ((enabled: boolean) => void) | null = null;
 
@@ -33,12 +35,16 @@ export function messageHandler(message: SandboxToUiMessage): void {
       handleTemplateLayers(message.payload);
       break;
     case 'generation-progress':
+      handleGenerationProgress(message.payload);
       break;
     case 'generation-complete':
+      handleGenerationComplete(message.payload);
       break;
     case 'generation-cancelled':
+      handleGenerationCancelled(message.payload);
       break;
     case 'generation-error':
+      handleGenerationError(message.payload);
       break;
     default:
       break;
@@ -92,4 +98,20 @@ function handleTemplateLayers(payload: {
     renderLayerList(payload.textLayers, payload.imageLayers, container);
     notifyTemplateReady(true);
   }
+}
+
+function handleGenerationProgress(payload: GenerationProgress): void {
+  updateProgress(payload);
+}
+
+function handleGenerationComplete(payload: GenerationResult): void {
+  showResult(payload);
+}
+
+function handleGenerationCancelled(payload: { successCount: number; processedRows: number; totalRows: number }): void {
+  showCancelledResult(payload.successCount, payload.processedRows, payload.totalRows);
+}
+
+function handleGenerationError(payload: { message: string; phase: string; rowIndex: number; detail: string }): void {
+  showError(payload.message || '生成失败');
 }
