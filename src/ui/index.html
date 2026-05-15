@@ -16,8 +16,9 @@
     <div id="data-section" class="section">
       <h3>数据源</h3>
       <div id="file-upload-container">
-        <input type="file" id="file-input" accept=".xlsx,.csv" hidden>
-        <button id="upload-btn">上传 Excel / CSV 文件</button>
+        <label id="upload-btn" class="upload-label">上传 Excel / CSV 文件
+          <input type="file" id="file-input" accept=".xlsx,.csv" style="position:absolute;opacity:0;width:0;height:0;overflow:hidden">
+        </label>
         <div id="file-info" class="file-info"></div>
       </div>
       <div id="field-list-container"></div>

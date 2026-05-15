@@ -40,27 +40,15 @@ function initialize(): void {
 function onReady(): void {
   sendMessage({ type: 'ui-ready', payload: {} });
 
-  setupUploadButton();
   setupDropZone();
-    setupFileInput();
-    setupGenerateButton();
+  setupFileInput();
+  setupGenerateButton();
 
-    sendMessage({ type: 'request-selection-info', payload: {} });
+  sendMessage({ type: 'request-selection-info', payload: {} });
 }
 
 function sendMessage(msg: { type: string; payload: unknown }): void {
   parent.postMessage({ pluginMessage: msg }, '*');
-}
-
-function setupUploadButton(): void {
-  const uploadBtn = document.getElementById('upload-btn');
-  const fileInput = document.getElementById('file-input') as HTMLInputElement | null;
-
-  if (uploadBtn && fileInput) {
-    uploadBtn.addEventListener('click', () => {
-      fileInput.click();
-    });
-  }
 }
 
 function setupFileInput(): void {
