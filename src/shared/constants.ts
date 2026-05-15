@@ -8,6 +8,7 @@ export const SUPPORTED_FILE_EXTENSIONS = {
 export const FILE_ACCEPT = '.xlsx,.csv';
 
 export const DEFAULT_LAYOUT: LayoutSettings = {
+  direction: 'grid',
   columns: 4,
   horizontalGap: 80,
   verticalGap: 100,

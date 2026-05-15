@@ -72,8 +72,11 @@ export interface MappingConfig {
   updatedAt: number;
 }
 
+export type LayoutDirection = 'grid' | 'horizontal' | 'vertical';
+
 // Layout settings
 export interface LayoutSettings {
+  direction: LayoutDirection;
   columns: number;
   horizontalGap: number;
   verticalGap: number;

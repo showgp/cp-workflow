@@ -11,23 +11,36 @@ export function layoutFrames(frames: FrameNode[], settings: LayoutSettings = DEF
   const frameHeight = firstFrame.height;
 
   for (let i = 0; i < frames.length; i++) {
-    const pos = calculateGridPosition(i, frameWidth, frameHeight, settings);
+    const pos = calculatePosition(i, frameWidth, frameHeight, settings);
     frames[i].x = baseX + pos.x;
     frames[i].y = baseY + pos.y;
   }
 }
 
-export function calculateGridPosition(
+export function calculatePosition(
   index: number,
   frameWidth: number,
   frameHeight: number,
   settings: LayoutSettings,
 ): { x: number; y: number } {
-  const cols = settings.columns || 4;
   const hGap = settings.horizontalGap || 80;
   const vGap = settings.verticalGap || 100;
-  const col = index % cols;
-  const row = Math.floor(index / cols);
+  const direction = settings.direction || 'grid';
+
+  let col: number;
+  let row: number;
+
+  if (direction === 'horizontal') {
+    col = index;
+    row = 0;
+  } else if (direction === 'vertical') {
+    col = 0;
+    row = index;
+  } else {
+    const cols = settings.columns || 4;
+    col = index % cols;
+    row = Math.floor(index / cols);
+  }
 
   return {
     x: col * (frameWidth + hGap),

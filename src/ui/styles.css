@@ -673,6 +673,25 @@ input[type="file"] {
   background: var(--figma-color-primary-hover);
 }
 
+.layout-options {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.layout-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.layout-option input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
 .resize-handle {
   position: fixed;
   right: 0;

@@ -7,7 +7,7 @@ import { createMappingPanel } from './mapping-view';
 import type { MappingEntry, MappingPanelCallbacks } from './mapping-view';
 import { showProgress, setProgressCancelCallback } from './progress-bar';
 import { hideResult } from './result-view';
-import type { GenerationConfig, LayoutSettings } from '../shared/types';
+import type { GenerationConfig, LayoutSettings, LayoutDirection } from '../shared/types';
 import { DEFAULT_LAYOUT } from '../shared/constants';
 
 interface AppState {
@@ -398,7 +398,12 @@ setTemplateLayersCallback((payload) => {
     hideResult();
     showProgress();
 
-    const layout: LayoutSettings = DEFAULT_LAYOUT;
+    const directionEl = document.querySelector('input[name="layout-direction"]:checked') as HTMLInputElement;
+    const direction = (directionEl ? directionEl.value : 'grid') as LayoutDirection;
+    const layout: LayoutSettings = {
+      ...DEFAULT_LAYOUT,
+      direction: direction,
+    };
 
     const config: GenerationConfig = {
       mapping: {
