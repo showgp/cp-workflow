@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["es2020", "dom"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noEmit": true,
+    "removeComments": true,
+    "sourceMap": true
+  },
+  "include": ["src/ui/**/*.ts", "src/shared/**/*.ts"]
+}

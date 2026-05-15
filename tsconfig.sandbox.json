@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["es2020"],
+    "module": "amd",
+    "strict": true,
+    "outFile": "./code.js",
+    "rootDir": "./src",
+    "typeRoots": [
+      "./node_modules/@figma"
+    ],
+    "types": ["plugin-typings"],
+    "removeComments": true,
+    "sourceMap": false
+  },
+  "include": ["src/sandbox/**/*.ts", "src/shared/**/*.ts"]
+}

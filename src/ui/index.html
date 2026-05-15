@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>批量填充模板生成器</title>
+</head>
+<body>
+  <div id="app">
+    <div id="template-section" class="section">
+      <h3>模板选择</h3>
+      <div id="template-status">请先在画布中选择一个模板 Frame</div>
+      <div id="layer-list-container"></div>
+    </div>
+    <div id="data-section" class="section">
+      <h3>数据源</h3>
+      <div id="file-upload-container">
+        <input type="file" id="file-input" accept=".xlsx,.csv" hidden>
+        <button id="upload-btn">上传 Excel / CSV 文件</button>
+        <div id="file-info" class="file-info"></div>
+      </div>
+      <div id="field-list-container"></div>
+    </div>
+    <div id="mapping-section" class="section">
+      <h3>字段映射</h3>
+      <div id="mapping-container"></div>
+    </div>
+    <div id="generation-section" class="section">
+      <div id="preview-info"></div>
+      <div id="progress-container"></div>
+      <div id="result-container"></div>
+      <button id="generate-btn" disabled>生成</button>
+    </div>
+  </div>
+  <script src="app.ts"></script>
+</body>
+</html>

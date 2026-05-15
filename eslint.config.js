@@ -27,6 +27,27 @@ module.exports = tseslint.config(
     },
   },
   {
-    ignores: ['code.js', 'dist', 'eslint.config.js'],
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
+        Buffer: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['src/sandbox/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.sandbox.json',
+        tsconfigRootDir: __dirname,
+      },
+    },
+  },
+  {
+    ignores: ['code.js', 'dist', 'eslint.config.js', 'ui.html'],
   },
 )
