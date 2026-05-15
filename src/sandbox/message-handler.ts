@@ -295,6 +295,9 @@ export function messageHandler(msg: unknown): void {
     case 'cancel-generation':
       handleCancelGeneration();
       break;
+    case 'resize-ui':
+      figma.ui.resize(message.payload.width, message.payload.height);
+      break;
     case 'selectionchange':
       handleSelectionChange();
       break;

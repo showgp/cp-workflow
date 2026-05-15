@@ -13,6 +13,7 @@ export const UI_TO_SANDBOX = {
   REQUEST_TEMPLATE_LAYERS: 'request-template-layers',
   START_GENERATION: 'start-generation',
   CANCEL_GENERATION: 'cancel-generation',
+  RESIZE_UI: 'resize-ui',
 } as const;
 
 export const SANDBOX_TO_UI = {
@@ -48,6 +49,11 @@ export interface StartGenerationMessage {
 export interface CancelGenerationMessage {
   type: 'cancel-generation';
   payload: Record<string, never>;
+}
+
+export interface ResizeUiMessage {
+  type: 'resize-ui';
+  payload: { width: number; height: number };
 }
 
 // Sandbox → UI messages
@@ -102,7 +108,8 @@ export type UiToSandboxMessage =
   | RequestSelectionInfoMessage
   | RequestTemplateLayersMessage
   | StartGenerationMessage
-  | CancelGenerationMessage;
+  | CancelGenerationMessage
+  | ResizeUiMessage;
 
 export type SandboxToUiMessage =
   | SelectionChangedMessage

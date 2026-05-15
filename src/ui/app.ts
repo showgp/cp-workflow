@@ -43,12 +43,48 @@ function onReady(): void {
   setupDropZone();
   setupFileInput();
   setupGenerateButton();
+  setupResizeHandle();
 
   sendMessage({ type: 'request-selection-info', payload: {} });
 }
 
 function sendMessage(msg: { type: string; payload: unknown }): void {
   parent.postMessage({ pluginMessage: msg }, '*');
+}
+
+function setupResizeHandle(): void {
+  const handle = document.getElementById('resize-handle');
+  if (!handle) return;
+
+  let dragging = false;
+  let lastSent = 0;
+
+  function onMouseMove(e: MouseEvent): void {
+    if (!dragging) return;
+    const now = Date.now();
+    if (now - lastSent < 50) return;
+    lastSent = now;
+
+    const newWidth = Math.max(280, Math.min(800, e.clientX));
+    const newHeight = Math.max(360, Math.min(1200, e.clientY));
+    sendMessage({
+      type: 'resize-ui',
+      payload: { width: Math.round(newWidth), height: Math.round(newHeight) },
+    });
+  }
+
+  function onMouseUp(): void {
+    dragging = false;
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
+
+  handle.addEventListener('mousedown', () => {
+    dragging = true;
+    lastSent = 0;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
 }
 
 function setupFileInput(): void {
