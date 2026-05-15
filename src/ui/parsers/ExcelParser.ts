@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { SourceTable, TableField, TableRow, ImageData } from '../../shared/types';
 import { MESSAGES } from '../../shared/constants';
+import { parseDrawings } from './DrawingParser';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -21,8 +22,14 @@ export async function parseExcelFile(file: File): Promise<SourceTable> {
       blankrows: false,
     });
 
-    const imageColumns = detectImageColumns(ws);
-    const extractedImages = extractImages(ws);
+    const sheetIndex = workbook.SheetNames.indexOf(sheetName);
+    const drawingInfo = await parseDrawings(new Uint8Array(buffer), sheetIndex);
+
+    const sheetImageColumns = detectImageColumns(ws);
+    const imageColumns = sheetImageColumns.size > 0 ? sheetImageColumns : drawingInfo.imageColumns;
+
+    const sheetExtracted = extractImages(ws);
+    const extractedImages = sheetExtracted.length > 0 ? sheetExtracted : drawingInfo.images;
 
     const rawHeaders = rawRows.length > 0 ? rawRows[0] : [];
     const dataRows = rawRows.slice(1);

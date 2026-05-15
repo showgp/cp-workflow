@@ -9,3 +9,5 @@ code.js
 ui.html
 *.tsbuildinfo
 cp-workflow.zip
+*.xlsx
+package-lock.json
