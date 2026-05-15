@@ -12,10 +12,10 @@ export function base64ToUint8Array(base64: string): Uint8Array {
 
   let outIdx = 0;
   for (let i = 0; i < cleaned.length; i += 4) {
-    const c1 = lookup.get(cleaned[i]) ?? -1;
-    const c2 = lookup.get(cleaned[i + 1]) ?? -1;
-    const c3 = i + 2 < cleaned.length ? (lookup.get(cleaned[i + 2]) ?? -1) : -1;
-    const c4 = i + 3 < cleaned.length ? (lookup.get(cleaned[i + 3]) ?? -1) : -1;
+    const c1 = lookup.get(cleaned[i]) != null ? lookup.get(cleaned[i])! : -1;
+    const c2 = lookup.get(cleaned[i + 1]) != null ? lookup.get(cleaned[i + 1])! : -1;
+    const c3 = i + 2 < cleaned.length ? (lookup.get(cleaned[i + 2]) != null ? lookup.get(cleaned[i + 2])! : -1) : -1;
+    const c4 = i + 3 < cleaned.length ? (lookup.get(cleaned[i + 3]) != null ? lookup.get(cleaned[i + 3])! : -1) : -1;
 
     if (c1 < 0 || c2 < 0) throw new Error('Invalid base64 character');
 
