@@ -37,11 +37,14 @@ async function build() {
 }
 
 function processBuildResult(result) {
-  const jsContent = result.outputFiles[0].text;
+  let jsContent = result.outputFiles[0].text;
   const htmlPath = resolve(srcDir, 'index.html');
   let htmlContent = readFileSync(htmlPath, 'utf-8');
   const cssPath = resolve(srcDir, 'styles.css');
-  const cssContent = readFileSync(cssPath, 'utf-8');
+  let cssContent = readFileSync(cssPath, 'utf-8');
+
+  // Escape $ in JS to prevent String.replace interpreting $&, $', etc. as backreferences
+  jsContent = jsContent.replace(/\$/g, '$$$$');
 
   htmlContent = htmlContent.replace(
     /<link rel="stylesheet" href="[^"]*">/,
