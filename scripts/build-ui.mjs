@@ -57,6 +57,16 @@ function processBuildResult(result) {
     `<script>${jsContent}</script>`
   );
 
+  // Safety check: verify both replacements actually happened
+  if (htmlContent.includes('<link') && htmlContent.includes('stylesheet')) {
+    console.error('❌ CSS inlining failed — <link rel="stylesheet"> still present in output');
+    process.exit(1);
+  }
+  if (/<script\s[^>]*src=/.test(htmlContent)) {
+    console.error('❌ JS inlining failed — <script src=> still present in output');
+    process.exit(1);
+  }
+
   const outputPath = resolve(rootDir, 'ui.html');
   writeFileSync(outputPath, htmlContent);
   console.log(`✅ ui.html built successfully (${(Buffer.byteLength(htmlContent) / 1024).toFixed(1)} KB)`);
