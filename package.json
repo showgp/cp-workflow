@@ -1,7 +1,7 @@
 {
   "name": "cp-workflow",
   "version": "1.0.0",
-  "description": "Your Figma Plugin",
+  "description": "从 Excel / CSV 批量生成 Figma 模板页面的插件",
   "main": "code.js",
   "scripts": {
     "build:sandbox": "node scripts/build-sandbox.mjs",
@@ -16,8 +16,8 @@
     "clean": "rm -f code.js ui.html",
     "package": "node scripts/package.mjs"
   },
-  "author": "",
-  "license": "",
+  "author": "cp-workflow contributors",
+  "license": "MIT",
   "dependencies": {
     "jszip": "^3.10.1",
     "papaparse": "^5.5.3",
