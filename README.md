@@ -116,6 +116,22 @@ cp-workflow/
 └──────────────────────────────────────┘
 ```
 
+## 设计文档
+
+项目配套了完整的需求与设计文档，位于 [`docs/`](docs/) 目录：
+
+| 文档 | 说明 |
+|------|------|
+| [`docs/requirements.md`](docs/requirements.md) | 完整需求规格说明，含 26 条功能需求和 7 条非功能需求 |
+| [`docs/plan_draft.md`](docs/plan_draft.md) | MVP 产品规划草案：用户画像、问题定义、验收标准 |
+| [`docs/specs/README.md`](docs/specs/README.md) | 6 项开发任务总览及依赖关系图 |
+| [`docs/specs/task-01-architecture/`](docs/specs/task-01-architecture/) | 架构设计：目录结构、类型系统、消息协议、构建系统 |
+| [`docs/specs/task-02-data-source/`](docs/specs/task-02-data-source/) | 数据源：Excel/CSV 解析、编码检测、图片提取 |
+| [`docs/specs/task-03-template/`](docs/specs/task-03-template/) | 模板：选区交互、图层扫描 |
+| [`docs/specs/task-04-mapping/`](docs/specs/task-04-mapping/) | 映射：字段与图层映射面板 |
+| [`docs/specs/task-05-generation/`](docs/specs/task-05-generation/) | 生成：克隆、填充、布局引擎 |
+| [`docs/specs/task-06-integration/`](docs/specs/task-06-integration/) | 集成：UI 布局、状态管理、进度与结果反馈 |
+
 ## 技术栈
 
 | 层 | 技术 |
