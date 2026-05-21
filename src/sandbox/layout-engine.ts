@@ -5,7 +5,8 @@ export function layoutNodes(nodes: SceneNode[], settings: LayoutSettings = DEFAU
   if (nodes.length === 0) return;
 
   const firstNode = nodes[0] as SceneNode & DimensionAndPositionMixin;
-  const baseX = firstNode.x;
+  const hGap = settings.horizontalGap || 80;
+  const baseX = firstNode.x + firstNode.width + hGap;
   const baseY = firstNode.y;
   const nodeWidth = firstNode.width;
   const nodeHeight = firstNode.height;
