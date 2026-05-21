@@ -6,7 +6,7 @@ interface FontKey {
   style: string;
 }
 
-export async function loadFonts(frame: FrameNode): Promise<void> {
+export async function loadFonts(root: SceneNode & ChildrenMixin): Promise<void> {
   const fonts = new Map<string, FontKey>();
 
   function collect(node: SceneNode): void {
@@ -24,13 +24,13 @@ export async function loadFonts(frame: FrameNode): Promise<void> {
       }
     }
     if ('children' in node) {
-      for (const child of (node as FrameNode).children) {
+      for (const child of (node as ChildrenMixin).children) {
         collect(child);
       }
     }
   }
 
-  collect(frame);
+  collect(root);
 
   await Promise.all(
     Array.from(fonts.values()).map(f => figma.loadFontAsync({ family: f.family, style: f.style }))
@@ -38,7 +38,7 @@ export async function loadFonts(frame: FrameNode): Promise<void> {
 }
 
 export function fillContent(
-  clonedFrame: FrameNode,
+  clonedRoot: SceneNode & ChildrenMixin,
   mappings: MappingEntry[],
   row: TableRow,
 ): { issues: Issue[]; warnings: Warning[] } {
@@ -49,7 +49,7 @@ export function fillContent(
     if (!mapping.sourceField || !mapping.targetLayerName) continue;
 
     const cellValue = row.cells[mapping.sourceField];
-    const targetNode = findNodeByPath(clonedFrame, mapping.targetLayerName.split(' > '));
+    const targetNode = findNodeByPath(clonedRoot, mapping.targetLayerName.split(' > '));
 
     if (!targetNode) {
       issues.push({
@@ -131,12 +131,12 @@ function fillImageContent(
   }
 }
 
-function findNodeByPath(frame: FrameNode, pathSegments: string[]): SceneNode | null {
-  const searchSegments = pathSegments[0] === frame.name ? pathSegments.slice(1) : pathSegments;
+function findNodeByPath(root: SceneNode & ChildrenMixin, pathSegments: string[]): SceneNode | null {
+  const searchSegments = pathSegments[0] === root.name ? pathSegments.slice(1) : pathSegments;
 
   if (searchSegments.length === 0) return null;
 
-  return findInChildren(frame, searchSegments, 0);
+  return findInChildren(root, searchSegments, 0);
 }
 
 function findInChildren(

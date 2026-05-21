@@ -128,12 +128,16 @@ export interface GenerationResult {
   endTime: number;
 }
 
+// 模板节点类型：插件接受作为模板的节点类型
+export type TemplateNodeType = 'FRAME' | 'INSTANCE' | 'GROUP';
+export const TEMPLATE_NODE_TYPES: ReadonlySet<string> = new Set(['FRAME', 'INSTANCE', 'GROUP']);
+
 // Selection info
 export interface SelectedNodeSummary {
   id: string;
   name: string;
   type: string;
-  isFrame: boolean;
+  isTemplate: boolean;
 }
 
 export interface SelectionInfo {

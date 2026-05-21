@@ -1,19 +1,20 @@
 import type { LayoutSettings } from '../shared/types';
 import { DEFAULT_LAYOUT } from '../shared/constants';
 
-export function layoutFrames(frames: FrameNode[], settings: LayoutSettings = DEFAULT_LAYOUT): void {
-  if (frames.length === 0) return;
+export function layoutNodes(nodes: SceneNode[], settings: LayoutSettings = DEFAULT_LAYOUT): void {
+  if (nodes.length === 0) return;
 
-  const firstFrame = frames[0];
-  const baseX = firstFrame.x;
-  const baseY = firstFrame.y;
-  const frameWidth = firstFrame.width;
-  const frameHeight = firstFrame.height;
+  const firstNode = nodes[0] as SceneNode & DimensionAndPositionMixin;
+  const baseX = firstNode.x;
+  const baseY = firstNode.y;
+  const nodeWidth = firstNode.width;
+  const nodeHeight = firstNode.height;
 
-  for (let i = 0; i < frames.length; i++) {
-    const pos = calculatePosition(i, frameWidth, frameHeight, settings);
-    frames[i].x = baseX + pos.x;
-    frames[i].y = baseY + pos.y;
+  for (let i = 0; i < nodes.length; i++) {
+    const pos = calculatePosition(i, nodeWidth, nodeHeight, settings);
+    const node = nodes[i] as SceneNode & DimensionAndPositionMixin;
+    node.x = baseX + pos.x;
+    node.y = baseY + pos.y;
   }
 }
 

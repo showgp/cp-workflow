@@ -66,7 +66,7 @@ export interface TemplateLayersMessage {
   type: 'template-layers';
   payload: {
     nodeId: string;
-    frameName: string;
+    templateName: string;
     textLayers: PlaceholderLayer[];
     imageLayers: PlaceholderLayer[];
     totalLayers: number;

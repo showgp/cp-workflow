@@ -8,7 +8,7 @@ let onGenerateEnabledChange: ((enabled: boolean) => void) | null = null;
 
 let onTemplateLayersReceived: ((payload: {
   nodeId: string;
-  frameName: string;
+  templateName: string;
   textLayers: PlaceholderLayer[];
   imageLayers: PlaceholderLayer[];
   totalLayers: number;
@@ -67,8 +67,8 @@ function handleSelectionChanged(info: SelectionInfo): void {
   }
 
   const node = info.selectedNodes[0];
-  if (!node.isFrame) {
-    updateTemplateStatus('not-frame', node.type);
+  if (!node.isTemplate) {
+    updateTemplateStatus('not-template', node.type);
     clearLayerList();
     notifyTemplateReady(false);
     return;
@@ -77,12 +77,12 @@ function handleSelectionChanged(info: SelectionInfo): void {
 
 function handleTemplateLayers(payload: {
   nodeId: string;
-  frameName: string;
+  templateName: string;
   textLayers: PlaceholderLayer[];
   imageLayers: PlaceholderLayer[];
   totalLayers: number;
 }): void {
-  updateTemplateStatus('valid', payload.frameName);
+  updateTemplateStatus('valid', payload.templateName);
 
   if (onTemplateLayersReceived) {
     onTemplateLayersReceived(payload);

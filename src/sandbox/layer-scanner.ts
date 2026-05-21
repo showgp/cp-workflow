@@ -6,9 +6,9 @@ const IMAGE_NODE_TYPES = new Set([
 
 const PENETRATE_TYPES = new Set(['GROUP', 'BOOLEAN_OPERATION']);
 
-const STOP_TYPES = new Set(['FRAME', 'COMPONENT', 'COMPONENT_SET', 'INSTANCE', 'SECTION']);
+const STOP_TYPES = new Set(['COMPONENT', 'COMPONENT_SET', 'INSTANCE', 'SECTION']);
 
-export async function scanLayers(templateFrame: FrameNode): Promise<{
+export async function scanLayers(root: SceneNode): Promise<{
   textLayers: PlaceholderLayer[];
   imageLayers: PlaceholderLayer[];
 }> {
@@ -17,23 +17,23 @@ export async function scanLayers(templateFrame: FrameNode): Promise<{
     imageLayers: [] as PlaceholderLayer[],
   };
 
-  await collectLayers(templateFrame, templateFrame.id, result);
+  await collectLayers(root, root.id, result);
   return result;
 }
 
 async function collectLayers(
   node: SceneNode,
-  frameId: string,
+  rootId: string,
   result: { textLayers: PlaceholderLayer[]; imageLayers: PlaceholderLayer[] },
 ): Promise<void> {
   if ('visible' in node && node.visible === false) return;
   if ('locked' in node && node.locked === true) return;
 
-  if (node.id !== frameId && STOP_TYPES.has(node.type)) return;
+  if (node.id !== rootId && STOP_TYPES.has(node.type)) return;
 
   if (node.type === 'TEXT') {
     const textNode = node as TextNode;
-    const path = await buildPath(node, frameId);
+    const path = await buildPath(node, rootId);
     let content = '';
     try {
       content = textNode.characters;
@@ -52,7 +52,7 @@ async function collectLayers(
   }
 
   if (IMAGE_NODE_TYPES.has(node.type)) {
-    const path = await buildPath(node, frameId);
+    const path = await buildPath(node, rootId);
     const hasImageFill = checkHasImageFill(node);
     result.imageLayers.push({
       id: node.id,
@@ -66,7 +66,7 @@ async function collectLayers(
     if (PENETRATE_TYPES.has(node.type)) {
       if ('children' in node) {
         for (const child of (node as ChildrenMixin).children) {
-          await collectLayers(child, frameId, result);
+          await collectLayers(child, rootId, result);
         }
       }
     }
@@ -76,7 +76,7 @@ async function collectLayers(
   if (PENETRATE_TYPES.has(node.type)) {
     if ('children' in node) {
       for (const child of (node as ChildrenMixin).children) {
-        await collectLayers(child, frameId, result);
+        await collectLayers(child, rootId, result);
       }
     }
     return;
@@ -84,16 +84,16 @@ async function collectLayers(
 
   if ('children' in node) {
     for (const child of (node as ChildrenMixin).children) {
-      await collectLayers(child, frameId, result);
+      await collectLayers(child, rootId, result);
     }
   }
 }
 
-async function buildPath(node: SceneNode, frameId: string): Promise<string> {
+async function buildPath(node: SceneNode, rootId: string): Promise<string> {
   const parts: string[] = [];
   let current: BaseNode | null = node;
 
-  while (current && current.id !== frameId) {
+  while (current && current.id !== rootId) {
     if ('name' in current && typeof current.name === 'string') {
       parts.unshift(current.name);
     }
@@ -104,9 +104,9 @@ async function buildPath(node: SceneNode, frameId: string): Promise<string> {
     }
   }
 
-  const frame = await figma.getNodeByIdAsync(frameId);
-  if (frame && 'name' in frame && typeof frame.name === 'string') {
-    parts.unshift(frame.name);
+  const root = await figma.getNodeByIdAsync(rootId);
+  if (root && 'name' in root && typeof root.name === 'string') {
+    parts.unshift(root.name);
   }
 
   return parts.join(' > ');

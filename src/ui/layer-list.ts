@@ -77,13 +77,13 @@ export function updateTemplateStatus(status: string, detail?: string): void {
 
   switch (status) {
     case 'no-selection':
-      el.innerHTML = '<div class="status status-gray">请先在画布中选中一个模板 Frame</div>';
+      el.innerHTML = '<div class="status status-gray">请选择一个容器节点（Frame / 实例 / 群组）作为模板</div>';
       break;
     case 'multiple':
-      el.innerHTML = '<div class="status status-warning">请只选择一个 Frame 作为模板，当前选中了多个对象</div>';
+      el.innerHTML = '<div class="status status-warning">请只选择一个容器节点（Frame / 实例 / 群组）作为模板，当前选中了多个对象</div>';
       break;
-    case 'not-frame':
-      el.innerHTML = `<div class="status status-warning">请选择一个 Frame 作为模板，当前选中的是 ${detail || '非Frame对象'}</div>`;
+    case 'not-template':
+      el.innerHTML = `<div class="status status-warning">请选择一个容器节点（Frame / 实例 / 群组）作为模板，当前选中的是 ${detail || '不支持的类型'}</div>`;
       break;
     case 'valid':
       el.innerHTML = `<div class="status status-success">已选择模板：${detail || ''}</div>`;

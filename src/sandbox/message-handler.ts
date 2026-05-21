@@ -1,16 +1,17 @@
 import type { UiToSandboxMessage, SandboxToUiMessage } from '../shared/messages';
 import type { SelectionInfo, SelectedNodeSummary, PlaceholderLayer, GenerationConfig, Issue, Warning } from '../shared/types';
 import { scanLayers } from './layer-scanner';
-import { cloneFrame } from './frame-cloner';
+import { cloneNode } from './node-cloner';
 import { fillContent, loadFonts } from './content-filler';
-import { layoutFrames } from './layout-engine';
+import { layoutNodes } from './layout-engine';
+import { TEMPLATE_NODE_TYPES } from '../shared/types';
 import { DEFAULT_LAYOUT } from '../shared/constants';
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let currentTemplateId: string | null = null;
 let cachedLayers: { textLayers: PlaceholderLayer[]; imageLayers: PlaceholderLayer[] } | null = null;
 let cancelRequested = false;
-let generatedFrames: FrameNode[] = [];
+let generatedNodes: SceneNode[] = [];
 
 function sendToUi(message: SandboxToUiMessage): void {
   figma.ui.postMessage(message);
@@ -25,7 +26,7 @@ function buildSelectionInfo(): SelectionInfo {
       id: node.id,
       name: node.name,
       type: node.type,
-      isFrame: node.type === 'FRAME',
+      isTemplate: TEMPLATE_NODE_TYPES.has(node.type),
     });
   }
 
@@ -67,21 +68,21 @@ function processSelection(): void {
   const selection = figma.currentPage.selection;
   const selectionInfo = buildSelectionInfo();
 
-  if (selection.length === 1 && selection[0].type === 'FRAME') {
-    const frame = selection[0] as FrameNode;
+  if (selection.length === 1 && TEMPLATE_NODE_TYPES.has(selection[0].type)) {
+    const templateNode = selection[0] as SceneNode;
 
-    if (frame.removed) {
+    if (templateNode.removed) {
       sendToUi({ type: 'selection-changed', payload: selectionInfo });
       return;
     }
 
-    if (frame.id === currentTemplateId && cachedLayers) {
+    if (templateNode.id === currentTemplateId && cachedLayers) {
       sendToUi({ type: 'selection-changed', payload: selectionInfo });
       sendToUi({
         type: 'template-layers',
         payload: {
-          nodeId: frame.id,
-          frameName: frame.name,
+          nodeId: templateNode.id,
+          templateName: templateNode.name,
           ...cachedLayers,
           totalLayers: cachedLayers.textLayers.length + cachedLayers.imageLayers.length,
         },
@@ -89,16 +90,16 @@ function processSelection(): void {
       return;
     }
 
-    scanLayers(frame).then(layers => {
+    scanLayers(templateNode).then(layers => {
       cachedLayers = layers;
-      currentTemplateId = frame.id;
+      currentTemplateId = templateNode.id;
 
       sendToUi({ type: 'selection-changed', payload: selectionInfo });
       sendToUi({
         type: 'template-layers',
         payload: {
-          nodeId: frame.id,
-          frameName: frame.name,
+          nodeId: templateNode.id,
+          templateName: templateNode.name,
           ...layers,
           totalLayers: layers.textLayers.length + layers.imageLayers.length,
         },
@@ -109,8 +110,8 @@ function processSelection(): void {
       sendToUi({
         type: 'template-layers',
         payload: {
-          nodeId: frame.id,
-          frameName: frame.name,
+          nodeId: templateNode.id,
+          templateName: templateNode.name,
           textLayers: [],
           imageLayers: [],
           totalLayers: 0,
@@ -128,7 +129,7 @@ function handleUiReady(): void {
   const selection = figma.currentPage.selection;
   sendToUi({ type: 'selection-changed', payload: buildSelectionInfo() });
 
-  if (selection.length === 1 && selection[0].type === 'FRAME') {
+  if (selection.length === 1 && TEMPLATE_NODE_TYPES.has(selection[0].type)) {
     processSelection();
   }
 }
@@ -136,21 +137,21 @@ function handleUiReady(): void {
 function handleRequestSelectionInfo(): void {
   sendToUi({ type: 'selection-changed', payload: buildSelectionInfo() });
   const selection = figma.currentPage.selection;
-  if (selection.length === 1 && selection[0].type === 'FRAME') {
+  if (selection.length === 1 && TEMPLATE_NODE_TYPES.has(selection[0].type)) {
     processSelection();
   }
 }
 
 async function handleRequestTemplateLayers(nodeId: string): Promise<void> {
   const node = await figma.getNodeByIdAsync(nodeId);
-  if (node && node.type === 'FRAME') {
+  if (node && TEMPLATE_NODE_TYPES.has(node.type)) {
     try {
-      const layers = await scanLayers(node as FrameNode);
+      const layers = await scanLayers(node as SceneNode);
       sendToUi({
         type: 'template-layers',
         payload: {
           nodeId: node.id,
-          frameName: node.name,
+          templateName: node.name,
           ...layers,
           totalLayers: layers.textLayers.length + layers.imageLayers.length,
         },
@@ -160,7 +161,7 @@ async function handleRequestTemplateLayers(nodeId: string): Promise<void> {
         type: 'template-layers',
         payload: {
           nodeId,
-          frameName: '',
+          templateName: '',
           textLayers: [],
           imageLayers: [],
           totalLayers: 0,
@@ -172,37 +173,37 @@ async function handleRequestTemplateLayers(nodeId: string): Promise<void> {
 
 async function handleStartGeneration(config: GenerationConfig): Promise<void> {
   cancelRequested = false;
-  generatedFrames = [];
+  generatedNodes = [];
 
   const mappings = config.mapping.entries;
   const rows = config.sourceTable.rows;
   const layout = config.layout || DEFAULT_LAYOUT;
 
-  let templateFrame: FrameNode | null = null;
+  let templateNode: SceneNode | null = null;
   const selection = figma.currentPage.selection;
-  if (selection.length === 1 && selection[0].type === 'FRAME') {
-    templateFrame = selection[0] as FrameNode;
+  if (selection.length === 1 && TEMPLATE_NODE_TYPES.has(selection[0].type)) {
+    templateNode = selection[0] as SceneNode;
   } else {
     const node = await figma.getNodeByIdAsync(config.mapping.templateNodeId);
-    if (node && node.type === 'FRAME') {
-      templateFrame = node as FrameNode;
+    if (node && TEMPLATE_NODE_TYPES.has(node.type)) {
+      templateNode = node as SceneNode;
     }
   }
 
-  if (!templateFrame) {
+  if (!templateNode) {
     sendToUi({
       type: 'generation-error',
       payload: {
-        message: '模板 Frame 未找到',
+        message: '模板节点未找到',
         phase: 'cloning',
         rowIndex: -1,
-        detail: 'Template frame not found',
+        detail: 'Template node not found',
       },
     });
     return;
   }
 
-  await loadFonts(templateFrame);
+  await loadFonts(templateNode as SceneNode & ChildrenMixin);
 
   const allIssues: Issue[] = [];
   const allWarnings: Warning[] = [];
@@ -211,7 +212,7 @@ async function handleStartGeneration(config: GenerationConfig): Promise<void> {
   for (let i = 0; i < rows.length; i++) {
     if (cancelRequested) {
       const resultPayload = {
-        successCount: generatedFrames.length,
+        successCount: generatedNodes.length,
         processedRows: i,
         totalRows: rows.length,
       };
@@ -223,11 +224,11 @@ async function handleStartGeneration(config: GenerationConfig): Promise<void> {
     }
 
     try {
-      const clone = cloneFrame(templateFrame);
-      generatedFrames.push(clone);
+      const clone = cloneNode(templateNode as FrameNode | InstanceNode | GroupNode);
+      generatedNodes.push(clone);
 
       if (mappings.length > 0) {
-        const { issues, warnings } = fillContent(clone, mappings, rows[i]);
+        const { issues, warnings } = fillContent(clone as SceneNode & ChildrenMixin, mappings, rows[i]);
         allIssues.push(...issues);
         allWarnings.push(...warnings);
       }
@@ -262,11 +263,11 @@ async function handleStartGeneration(config: GenerationConfig): Promise<void> {
     }
   }
 
-  layoutFrames(generatedFrames, layout);
+  layoutNodes(generatedNodes, layout);
 
   const endTime = Date.now();
   const result = {
-    successCount: generatedFrames.length,
+    successCount: generatedNodes.length,
     issueCount: allIssues.length,
     totalRows: rows.length,
     issues: allIssues,
